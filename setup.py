@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 """Setup file for sermepa client.
 """
+
+from distutils.core import setup
+
 PACKAGES = ['sermepa', ]
 PACKAGES_DATA = {}
 
@@ -15,7 +18,7 @@ setup(name='sermepa',
       license='General Public Licence 2',
       long_description='''Long description''',
       provides=['sermepa'],
-      requires=[],
+      install_requires=[],
       packages=PACKAGES,
       package_data=PACKAGES_DATA,
       scripts=[],
