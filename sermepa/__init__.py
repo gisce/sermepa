@@ -33,6 +33,24 @@ DATA = [
     'Ds_Merchant_TransactionDate',
 ]
 
+LANG_MAP = {
+  '001': 'es_ES',
+  '002': 'en_US',
+  '003': 'ca_ES',
+  '004': 'fr_FR',
+  '005': 'de_DE',
+  '006': 'nl_NL',
+  '007': 'it_IT',
+  '008': 'sv_SE',
+  '009': 'pt_PT',
+  '010': 'ca_ES', # valencia
+  '011': 'pl_PL',
+  '012': 'gl_ES',
+  '013': 'eu_ES',
+  '208': 'da_DK',
+}
+
+
 class Client(object):
     """Client"""
 
