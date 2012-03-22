@@ -55,7 +55,7 @@ class Client(object):
     """Client"""
 
     def __init__(self, business_code, priv_key,
-                 endpoint_url='https://sis-t.sermepa.es/sis/realizarPago'):
+                 endpoint_url='https://sis.sermepa.es/sis/realizarPago'):
         # init params
         for param in DATA:
             setattr(self, param, None)
