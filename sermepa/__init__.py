@@ -9,6 +9,10 @@
 """
 
 import hashlib
+import base64
+import hmac
+import json
+import pyDes
 
 DATA = [
     'Ds_Merchant_Amount',
@@ -22,7 +26,6 @@ DATA = [
     'Ds_Merchant_UrlKO',
     'Ds_Merchant_MerchantName',
     'Ds_Merchant_ConsumerLanguage',
-    'Ds_Merchant_MerchantSignature',
     'Ds_Merchant_Terminal',
     'Ds_Merchant_SumTotal',
     'Ds_Merchant_TransactionType',
@@ -55,7 +58,7 @@ class Client(object):
     """Client"""
 
     def __init__(self, business_code, priv_key,
-                 endpoint_url='https://sis.sermepa.es/sis/realizarPago'):
+                 endpoint_url='https://sis.redsys.es/sis/realizarPago'):
         # init params
         for param in DATA:
             setattr(self, param, None)
@@ -70,17 +73,8 @@ class Client(object):
                 raise ValueError(u"The received parameter %s is not allowed."
                                  % param)
             setattr(self, param, transaction_params[param])
-        signature = (str(int(self.Ds_Merchant_Amount * 100)) +
-                     str(self.Ds_Merchant_Order) +
-                     str(self.Ds_Merchant_MerchantCode) +
-                     str(self.Ds_Merchant_Currency or '978') +
-                     str(self.Ds_Merchant_TransactionType) +
-                     str(self.Ds_Merchant_MerchantURL) +
-                     str(self.priv_key))
 
-        self.Ds_Merchant_MerchantSignature = \
-            hashlib.sha1(signature).hexdigest().upper()
-        data = {
+        subdata = {
             'Ds_Merchant_Amount': int(self.Ds_Merchant_Amount * 100),
             'Ds_Merchant_Currency': self.Ds_Merchant_Currency or 978, # EUR
             'Ds_Merchant_Order': self.Ds_Merchant_Order[:12],
@@ -93,7 +87,6 @@ class Client(object):
             'Ds_Merchant_UrlKO': self.Ds_Merchant_UrlKO[:250],
             'Ds_Merchant_MerchantName': self.Ds_Merchant_MerchantName[:25],
             'Ds_Merchant_ConsumerLanguage': self.Ds_Merchant_ConsumerLanguage,
-            'Ds_Merchant_MerchantSignature': self.Ds_Merchant_MerchantSignature,
             'Ds_Merchant_Terminal': self.Ds_Merchant_Terminal or '1',
             'Ds_Merchant_SumTotal': int(self.Ds_Merchant_SumTotal * 100),
             'Ds_Merchant_TransactionType': self.Ds_Merchant_TransactionType \
@@ -105,6 +98,24 @@ class Client(object):
                  self.Ds_Merchant_ChargeExpiryDate[:10] or None),
             'Ds_Merchant_AuthorisationCode': self.Ds_Merchant_AuthorisationCode,
             'Ds_Merchant_TransactionDate': self.Ds_Merchant_TransactionDate,
+        }
+        params_json = json.dumps(subdata)
+        b64params = base64.b64encode(params_json)
+
+        merchant_key = base64.b64decode(priv_key)
+        k = pyDes.triple_des(merchant_key, pyDes.CBC, b"\0\0\0\0\0\0\0\0", pad=None, padmode=pyDes.PAD_PKCS5)
+        secret = k.encrypt(subdata['Ds_Merchant_Order'])
+
+        self.Ds_Signature = base64.b64encode(hmac.new(
+            secret = secret,
+            message = b64params,
+            digestmod = hashlib.sha256
+            ).digest())
+
+        data = {
+            'Ds_SignatureVersion': 'HMAC_SHA256_V1',
+            'Ds_Signature': self.Ds_Signature,
+            'Ds_MerchantParameters':  b64params,
         }
         return data
 
@@ -120,5 +131,5 @@ class TestClient(Client):
 
     def __init__(self, business_code, priv_key):
         super(TestClient, self).__init__(business_code, priv_key,
-              'https://sis-t.sermepa.es:25443/sis/realizarPago')
+              'https://sis-t.redsys.es:25443/sis/realizarPago')
 

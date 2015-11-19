@@ -3,7 +3,7 @@
 """Setup file for sermepa client.
 """
 
-from distutils.core import setup
+from setuptools import setup
 
 PACKAGES = ['sermepa', ]
 PACKAGES_DATA = {}
@@ -18,7 +18,9 @@ setup(name='sermepa',
       license='General Public Licence 2',
       long_description='''Long description''',
       provides=['sermepa'],
-      install_requires=[],
+      install_requires=[
+        'pyDes',
+        ],
       packages=PACKAGES,
       package_data=PACKAGES_DATA,
       scripts=[],
