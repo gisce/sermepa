@@ -102,8 +102,13 @@ class Client(object):
         params_json = json.dumps(subdata)
         b64params = base64.b64encode(params_json)
 
-        merchant_key = base64.b64decode(self.priv_key)
-        k = pyDes.triple_des(merchant_key, pyDes.CBC, b"\0\0\0\0\0\0\0\0", pad=None, padmode=pyDes.PAD_PKCS5)
+        decoded_key = base64.b64decode(self.priv_key)
+        k = pyDes.triple_des(
+            decoded_key,
+            pyDes.CBC,
+            b"\0\0\0\0\0\0\0\0",
+            pad='\0',
+            )
         secret = k.encrypt(subdata['Ds_Merchant_Order'])
 
         self.Ds_Signature = base64.b64encode(hmac.new(
