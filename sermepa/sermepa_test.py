@@ -102,6 +102,15 @@ class NotificationReceiver_Test(unittest.TestCase):
             Ds_Order = '666',
             ))
 
+    def test_decodeSignedData_badVersion(self):
+        data = decodeSignedData(
+            self.merchantkey,
+            Ds_MerchantParameters = self.encodeddata,
+            Ds_Signature = self.signature,
+            Ds_SignatureVersion = 'bad',
+            )
+        self.assertEqual(data, None)
+
 
 unittest.TestCase.__str__ = unittest.TestCase.id
 

@@ -95,8 +95,11 @@ def decodeSignedData(
         Ds_Signature,
         Ds_SignatureVersion,
         ):
+    if Ds_SignatureVersion != 'HMAC_SHA256_V1':
+        return None
     json_data = base64.urlsafe_b64decode(Ds_MerchantParameters)
     data = json.loads(json_data)
+
     return data
 
     
