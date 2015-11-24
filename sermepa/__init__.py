@@ -135,9 +135,9 @@ class Client(object):
             'Ds_Merchant_AuthorisationCode': self.Ds_Merchant_AuthorisationCode,
             'Ds_Merchant_TransactionDate': self.Ds_Merchant_TransactionDate,
         }
+
         params_json = json.dumps(subdata)
         b64params = base64.b64encode(params_json)
-
         secret = orderSecret(self.priv_key, subdata['Ds_Merchant_Order'])
         self.Ds_Signature = signPayload(secret, b64params)
 

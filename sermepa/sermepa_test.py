@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import unittest
 import base64
@@ -69,6 +70,7 @@ class NotificationReceiver_Test(unittest.TestCase):
     merchantkey = b'Mk9m98IfEblmPfrpsawt7BmxObt98Jev'
     secret = '1uGRHjGaVgg='
     signature = b"BskiXgq875tls56oClRVg72-ppcLpOSW0JUY9riQEKs="
+    orderid = '666'
 
     def test_payloadDecoding(self):
         # TODO: Should be urlsafe_b64decode, provide an input which differs
@@ -76,16 +78,18 @@ class NotificationReceiver_Test(unittest.TestCase):
         self.assertEqual(decodedData, self.data)
 
     def test_obtainOrder(self):
+        # TODO: It could be DS_ORDER as well
         order = json.loads(self.data)['Ds_Order']
-        self.assertEqual(order, '666')
+        self.assertEqual(order, self.orderid)
 
     def test_generateSecret(self):
-        secret = orderSecret(self.merchantkey, "666")
+        secret = orderSecret(self.merchantkey, self.orderid)
         self.assertEqual(self.secret, secret)
 
     def test_computeKey(self):
         signature = signPayload(self.secret, self.encodeddata, urlsafe=True)
         self.assertMultiLineEqual(self.signature, signature)
+
 
 
 unittest.TestCase.__str__ = unittest.TestCase.id
