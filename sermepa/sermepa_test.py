@@ -15,7 +15,9 @@ def orderSecret(key, order):
     return base64.b64encode(secret)
 
 class Generator_Test(unittest.TestCase):
-    # b2b data taken from the php example
+
+    # back2back data taken from PHP example
+
     json = (
         '{'
         '"DS_MERCHANT_AMOUNT":"145",'
@@ -67,6 +69,9 @@ class Generator_Test(unittest.TestCase):
         self.assertEqual(signature, self.signature)
 
 class NotificationReceiver_Test(unittest.TestCase):
+
+    # back2back data taken from PHP example
+
     encodeddata = b'eyJEc19PcmRlciI6ICI2NjYifQ=='
     data = (
         '{'
