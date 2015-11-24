@@ -95,14 +95,34 @@ def decodeSignedData(
         Ds_Signature,
         Ds_SignatureVersion,
         ):
+
     if Ds_SignatureVersion != 'HMAC_SHA256_V1':
-        return None
-    json_data = base64.urlsafe_b64decode(Ds_MerchantParameters)
-    data = json.loads(json_data)
+        return 'Unsupported signature version'
+
+    try:
+        json_data = base64.urlsafe_b64decode(Ds_MerchantParameters)
+    except:
+        return 'Unable to decode base 64'
+
+    try:
+        data = json.loads(json_data)
+    except ValueError:
+        return 'Bad JSON format'
+
+    try:
+        orderid = data['Ds_Order'].encode('utf-8')
+    except KeyError:
+        return 'Missing Ds_Order attribute'
+
+    orderkey = orderSecret(merchantKey, orderid)
+    signature = signPayload(orderkey, Ds_MerchantParameters, urlsafe = True)
+
+    if signature != Ds_Signature:
+        return "Bad signature"
 
     return data
 
-    
+ 
     
 
 

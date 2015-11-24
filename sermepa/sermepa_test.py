@@ -71,6 +71,7 @@ class NotificationReceiver_Test(unittest.TestCase):
     secret = '1uGRHjGaVgg='
     signature = b"BskiXgq875tls56oClRVg72-ppcLpOSW0JUY9riQEKs="
     orderid = '666'
+    signatureversion = 'HMAC_SHA256_V1'
 
     def test_payloadDecoding(self):
         # TODO: Should be urlsafe_b64decode, provide an input which differs
@@ -96,7 +97,7 @@ class NotificationReceiver_Test(unittest.TestCase):
             self.merchantkey,
             Ds_MerchantParameters = self.encodeddata,
             Ds_Signature = self.signature,
-            Ds_SignatureVersion = 'HMAC_SHA256_V1',
+            Ds_SignatureVersion = self.signatureversion,
             )
         self.assertEqual(data, dict(
             Ds_Order = '666',
@@ -109,7 +110,37 @@ class NotificationReceiver_Test(unittest.TestCase):
             Ds_Signature = self.signature,
             Ds_SignatureVersion = 'bad',
             )
-        self.assertEqual(data, None)
+        self.assertEqual(data, 'Unsupported signature version')
+
+    def test_decodeSignedData_nonBase64Data(self):
+        data = decodeSignedData(
+            self.merchantkey,
+            Ds_MerchantParameters = '3ww',
+            Ds_Signature = self.signature,
+            Ds_SignatureVersion = self.signatureversion,
+            )
+        self.assertEqual(data, 'Unable to decode base 64')
+
+
+    def test_decodeSignedData_badJson(self):
+        badJson = "{bad json}"
+        data = decodeSignedData(
+            self.merchantkey,
+            Ds_MerchantParameters = base64.urlsafe_b64encode(badJson),
+            Ds_Signature = self.signature,
+            Ds_SignatureVersion = self.signatureversion,
+            )
+        self.assertEqual(data, 'Bad JSON format')
+
+    def test_decodeSignedData_badJson(self):
+        badJson = '{"Ds_Order":"777"}'
+        data = decodeSignedData(
+            self.merchantkey,
+            Ds_MerchantParameters = base64.urlsafe_b64encode(badJson),
+            Ds_Signature = self.signature,
+            Ds_SignatureVersion = self.signatureversion,
+            )
+        self.assertEqual(data, 'Bad signature')
 
 
 unittest.TestCase.__str__ = unittest.TestCase.id
