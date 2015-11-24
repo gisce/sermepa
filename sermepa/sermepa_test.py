@@ -7,7 +7,7 @@ import pyDes
 import hmac
 import hashlib
 import json
-from sermepa import orderSecret, signPayload, decodeSignedData, SignatureError
+from sermepa import orderSecret, signPayload, decodeSignedData, SignatureError, encodeSignedData
 
 
 class Generator_Test(unittest.TestCase):
@@ -38,6 +38,7 @@ class Generator_Test(unittest.TestCase):
     merchantkey = b'Mk9m98IfEblmPfrpsawt7BmxObt98Jev'
     secret= b'38t5Zm5RjlVHNycd8Nutcg=='
     signature = b'Ejse86yr96Xbr1mf6UvQLoTPwwTyFiLXM+2uT09i9nY='
+    signatureversion = 'HMAC_SHA256_V1'
 
 
     def test_encodePayload(self):
@@ -55,6 +56,50 @@ class Generator_Test(unittest.TestCase):
 
         self.assertMultiLineEqual(signature, self.signature)
 
+class GeneratorFull_Test(Generator_Test):
+
+    data = dict(
+        Ds_Merchant_MerchantCode = 'the_sermepa_user',
+        Ds_Merchant_Order = '1447961844',
+        Ds_Merchant_Amount = '10000',
+        Ds_Merchant_ProductDescription = 'the_name_of_the_product',
+        Ds_Merchant_Titular = 'the_owner_of_the_account',
+        Ds_Merchant_MerchantName = 'the_merchant_name',
+        Ds_Merchant_MerchantURL = 'the_url_to_be_notified_at',
+        Ds_Merchant_UrlOK = 'the_url_for_success',
+        Ds_Merchant_UrlKO = 'the_url_for_failure',
+        Ds_Merchant_ConsumerLanguage = '001',
+        Ds_Merchant_Terminal = '1',
+        Ds_Merchant_SumTotal = '10000',
+        Ds_Merchant_TransactionType = '0',
+        Ds_Merchant_MerchantData = 'COBRAMENT QUOTA SOCI',
+        )
+    json = json.dumps(data, sort_keys=True)
+    encodedPayload = "eyJEc19NZXJjaGFudF9BbW91bnQiOiAiMTAwMDAiLCAiRHNfTWVyY2hhbnRfQ29uc3VtZXJMYW5ndWFnZSI6ICIwMDEiLCAiRHNfTWVyY2hhbnRfTWVyY2hhbnRDb2RlIjogInRoZV9zZXJtZXBhX3VzZXIiLCAiRHNfTWVyY2hhbnRfTWVyY2hhbnREYXRhIjogIkNPQlJBTUVOVCBRVU9UQSBTT0NJIiwgIkRzX01lcmNoYW50X01lcmNoYW50TmFtZSI6ICJ0aGVfbWVyY2hhbnRfbmFtZSIsICJEc19NZXJjaGFudF9NZXJjaGFudFVSTCI6ICJ0aGVfdXJsX3RvX2JlX25vdGlmaWVkX2F0IiwgIkRzX01lcmNoYW50X09yZGVyIjogIjE0NDc5NjE4NDQiLCAiRHNfTWVyY2hhbnRfUHJvZHVjdERlc2NyaXB0aW9uIjogInRoZV9uYW1lX29mX3RoZV9wcm9kdWN0IiwgIkRzX01lcmNoYW50X1N1bVRvdGFsIjogIjEwMDAwIiwgIkRzX01lcmNoYW50X1Rlcm1pbmFsIjogIjEiLCAiRHNfTWVyY2hhbnRfVGl0dWxhciI6ICJ0aGVfb3duZXJfb2ZfdGhlX2FjY291bnQiLCAiRHNfTWVyY2hhbnRfVHJhbnNhY3Rpb25UeXBlIjogIjAiLCAiRHNfTWVyY2hhbnRfVXJsS08iOiAidGhlX3VybF9mb3JfZmFpbHVyZSIsICJEc19NZXJjaGFudF9VcmxPSyI6ICJ0aGVfdXJsX2Zvcl9zdWNjZXNzIn0="
+    signature = "eg0L/kTPyflwoOV0djlsCB/K4Uw5+balc7dyMkUjBIE="
+
+    def setUp(self):
+        self.maxDiff = None
+
+    def test_encodeSignedData_whenAllOk(self):
+        result = encodeSignedData(
+            self.merchantkey,
+            **self.data
+            )
+        self.assertEqual(result, dict(
+            Ds_SignatureVersion = 'HMAC_SHA256_V1',
+            Ds_Signature = self.signature,
+            Ds_MerchantParameters =  self.encodedPayload,
+            ))
+
+    def test_encodeSignedData_whenNoOrder(self):
+        data = dict(self.data)
+        del data['Ds_Merchant_Order']
+        with self.assertRaises(KeyError):
+            encodeSignedData(
+                self.merchantkey,
+                **data
+                )
 
 
 class NotificationReceiver_Test(unittest.TestCase):

@@ -128,7 +128,17 @@ def decodeSignedData(
 
     return data
 
- 
+def encodeSignedData(merchantKey, **kwds):
+    params_json = json.dumps(kwds, sort_keys=True)
+    b64params = base64.b64encode(params_json)
+    secret = orderSecret(merchantKey, kwds['Ds_Merchant_Order'])
+    signature = signPayload(secret, b64params)
+
+    return dict(
+        Ds_SignatureVersion = 'HMAC_SHA256_V1',
+        Ds_Signature = signature,
+        Ds_MerchantParameters = b64params,
+        )
     
 
 
@@ -152,7 +162,7 @@ class Client(object):
                                  % param)
             setattr(self, param, transaction_params[param])
 
-        subdata = {
+        return encodeSignedData(self.priv_key, **{
             'Ds_Merchant_Amount': int(self.Ds_Merchant_Amount * 100),
             'Ds_Merchant_Currency': self.Ds_Merchant_Currency or 978, # EUR
             'Ds_Merchant_Order': self.Ds_Merchant_Order[:12],
@@ -176,19 +186,7 @@ class Client(object):
                  self.Ds_Merchant_ChargeExpiryDate[:10] or None),
             'Ds_Merchant_AuthorisationCode': self.Ds_Merchant_AuthorisationCode,
             'Ds_Merchant_TransactionDate': self.Ds_Merchant_TransactionDate,
-        }
-
-        params_json = json.dumps(subdata)
-        b64params = base64.b64encode(params_json)
-        secret = orderSecret(self.priv_key, subdata['Ds_Merchant_Order'])
-        self.Ds_Signature = signPayload(secret, b64params)
-
-        data = {
-            'Ds_SignatureVersion': 'HMAC_SHA256_V1',
-            'Ds_Signature': self.Ds_Signature,
-            'Ds_MerchantParameters':  b64params,
-        }
-        return data
+            })
 
 
 class TestClient(Client):
