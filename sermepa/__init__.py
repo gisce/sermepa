@@ -55,6 +55,13 @@ LANG_MAP = {
 
 
 def orderSecret(key, order):
+    """
+    Given the order identifier and the merchant key,
+    provide a secret key to sign the order.
+    Expects the merchant key in base64 format.
+    Returns the secret key in base64 format.
+    """
+
     decodedkey = base64.b64decode(key)
     k = pyDes.triple_des(
         decodedkey,
@@ -66,6 +73,14 @@ def orderSecret(key, order):
     return base64.b64encode(secret)
 
 def signPayload(secret, data, urlsafe=False):
+    """
+    Given the order specific secret key,
+    and the data to sign, obtains a signature.
+    Expects the order key in base64 format.
+    Returns the signature in base64 format,
+    urlsafe if specified (for notification).
+    """
+
     result = hmac.new(
         base64.b64decode(secret),
         data,
@@ -123,20 +138,8 @@ class Client(object):
         params_json = json.dumps(subdata)
         b64params = base64.b64encode(params_json)
 
-        decoded_key = base64.b64decode(self.priv_key)
-        k = pyDes.triple_des(
-            decoded_key,
-            pyDes.CBC,
-            b"\0\0\0\0\0\0\0\0",
-            pad='\0',
-            )
-        secret = k.encrypt(subdata['Ds_Merchant_Order'])
-
-        self.Ds_Signature = base64.b64encode(hmac.new(
-            secret = secret,
-            message = b64params,
-            digestmod = hashlib.sha256
-            ).digest())
+        secret = orderSecret(self.priv_key, subdata['Ds_Merchant_Order'])
+        self.Ds_Signature = signPayload(secret, b64params)
 
         data = {
             'Ds_SignatureVersion': 'HMAC_SHA256_V1',

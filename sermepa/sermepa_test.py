@@ -80,7 +80,7 @@ class NotificationReceiver_Test(unittest.TestCase):
         self.assertEqual(order, '666')
 
     def test_generateSecret(self):
-        secret= orderSecret(self.merchantkey, "666")
+        secret = orderSecret(self.merchantkey, "666")
         self.assertEqual(self.secret, secret)
 
     def test_computeKey(self):
