@@ -115,11 +115,12 @@ def decodeSignedData(
         error('Bad JSON format')
 
     try:
-        orderid = data['Ds_Order'].encode('utf-8')
+        # TODO: It could be 'DS_ORDER' as well
+        orderid = data['Ds_Order']
     except KeyError:
         error('Missing Ds_Order attribute')
 
-    orderkey = orderSecret(merchantKey, orderid)
+    orderkey = orderSecret(merchantKey, orderid.encode('utf-8'))
     signature = signPayload(orderkey, Ds_MerchantParameters, urlsafe = True)
 
     if signature != Ds_Signature:
