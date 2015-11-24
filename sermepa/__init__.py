@@ -89,6 +89,19 @@ def signPayload(secret, data, urlsafe=False):
     encoder = base64.urlsafe_b64encode if urlsafe else base64.b64encode
     return encoder(result)
 
+def decodeSignedData(
+        merchantKey,
+        Ds_MerchantParameters,
+        Ds_Signature,
+        Ds_SignatureVersion,
+        ):
+    json_data = base64.urlsafe_b64decode(Ds_MerchantParameters)
+    data = json.loads(json_data)
+    return data
+
+    
+    
+
 
 class Client(object):
     """Client"""

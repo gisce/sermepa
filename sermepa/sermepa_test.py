@@ -7,7 +7,7 @@ import pyDes
 import hmac
 import hashlib
 import json
-from sermepa import orderSecret, signPayload
+from sermepa import orderSecret, signPayload, decodeSignedData
 
 
 class Generator_Test(unittest.TestCase):
@@ -90,6 +90,17 @@ class NotificationReceiver_Test(unittest.TestCase):
         signature = signPayload(self.secret, self.encodeddata, urlsafe=True)
         self.assertMultiLineEqual(self.signature, signature)
 
+
+    def test_decodeSignedData_whenAllOk(self):
+        data = decodeSignedData(
+            self.merchantkey,
+            Ds_MerchantParameters = self.encodeddata,
+            Ds_Signature = self.signature,
+            Ds_SignatureVersion = 'HMAC_SHA256_V1',
+            )
+        self.assertEqual(data, dict(
+            Ds_Order = '666',
+            ))
 
 
 unittest.TestCase.__str__ = unittest.TestCase.id
