@@ -7,7 +7,7 @@ import pyDes
 import hmac
 import hashlib
 import json
-from sermepa import orderSecret, signPayload, decodeSignedData
+from sermepa import orderSecret, signPayload, decodeSignedData, SignatureError
 
 
 class Generator_Test(unittest.TestCase):
@@ -104,43 +104,63 @@ class NotificationReceiver_Test(unittest.TestCase):
             ))
 
     def test_decodeSignedData_badVersion(self):
-        data = decodeSignedData(
-            self.merchantkey,
-            Ds_MerchantParameters = self.encodeddata,
-            Ds_Signature = self.signature,
-            Ds_SignatureVersion = 'bad',
-            )
-        self.assertEqual(data, 'Unsupported signature version')
+        with self.assertRaises(SignatureError) as cm:
+            decodeSignedData(
+                self.merchantkey,
+                Ds_MerchantParameters = self.encodeddata,
+                Ds_Signature = self.signature,
+                Ds_SignatureVersion = 'bad',
+                )
+        msg = cm.exception.args[0]
+        self.assertEqual(msg, 'Unsupported signature version')
 
     def test_decodeSignedData_nonBase64Data(self):
-        data = decodeSignedData(
-            self.merchantkey,
-            Ds_MerchantParameters = '3ww',
-            Ds_Signature = self.signature,
-            Ds_SignatureVersion = self.signatureversion,
-            )
-        self.assertEqual(data, 'Unable to decode base 64')
+        with self.assertRaises(SignatureError) as cm:
+            decodeSignedData(
+                self.merchantkey,
+                Ds_MerchantParameters = '3ww',
+                Ds_Signature = self.signature,
+                Ds_SignatureVersion = self.signatureversion,
+                )
+        msg = cm.exception.args[0]
+        self.assertEqual(msg, 'Unable to decode base 64')
 
 
     def test_decodeSignedData_badJson(self):
-        badJson = "{bad json}"
-        data = decodeSignedData(
-            self.merchantkey,
-            Ds_MerchantParameters = base64.urlsafe_b64encode(badJson),
-            Ds_Signature = self.signature,
-            Ds_SignatureVersion = self.signatureversion,
-            )
-        self.assertEqual(data, 'Bad JSON format')
+        json_data = "{bad json}"
+        with self.assertRaises(SignatureError) as cm:
+            decodeSignedData(
+                self.merchantkey,
+                Ds_MerchantParameters = base64.urlsafe_b64encode(json_data),
+                Ds_Signature = self.signature,
+                Ds_SignatureVersion = self.signatureversion,
+                )
+        msg = cm.exception.args[0]
+        self.assertEqual(msg, 'Bad JSON format')
 
-    def test_decodeSignedData_badJson(self):
-        badJson = '{"Ds_Order":"777"}'
-        data = decodeSignedData(
-            self.merchantkey,
-            Ds_MerchantParameters = base64.urlsafe_b64encode(badJson),
-            Ds_Signature = self.signature,
-            Ds_SignatureVersion = self.signatureversion,
-            )
-        self.assertEqual(data, 'Bad signature')
+    def test_decodeSignedData_misingOrder(self):
+        json_data = '{}'
+        with self.assertRaises(SignatureError) as cm:
+            decodeSignedData(
+                self.merchantkey,
+                Ds_MerchantParameters = base64.urlsafe_b64encode(json_data),
+                Ds_Signature = self.signature,
+                Ds_SignatureVersion = self.signatureversion,
+                )
+        msg = cm.exception.args[0]
+        self.assertEqual(msg, 'Missing Ds_Order attribute')
+
+    def test_decodeSignedData_badSignature(self):
+        json_data = '{"Ds_Order":"777"}'
+        with self.assertRaises(SignatureError) as cm:
+            decodeSignedData(
+                self.merchantkey,
+                Ds_MerchantParameters = base64.urlsafe_b64encode(json_data),
+                Ds_Signature = self.signature,
+                Ds_SignatureVersion = self.signatureversion,
+                )
+        msg = cm.exception.args[0]
+        self.assertEqual(msg, 'Bad signature')
 
 
 unittest.TestCase.__str__ = unittest.TestCase.id
