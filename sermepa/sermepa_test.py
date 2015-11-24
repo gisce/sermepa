@@ -6,13 +6,8 @@ import pyDes
 import hmac
 import hashlib
 import json
+from sermepa import orderSecret, signPayload
 
-
-def orderSecret(key, order):
-    decodedkey = base64.b64decode(key)
-    k = pyDes.triple_des(decodedkey, pyDes.CBC, b"\0\0\0\0\0\0\0\0", pad='\0')
-    secret = k.encrypt(order)
-    return base64.b64encode(secret)
 
 class Generator_Test(unittest.TestCase):
 
@@ -52,21 +47,14 @@ class Generator_Test(unittest.TestCase):
     def test_generateSecret(self):
         secret = orderSecret(self.merchantkey, self.merchantOrder)
 
-        self.assertEqual(
-            self.secret,
-            secret,
-            )
+        self.assertEqual(self.secret, secret)
 
     def test_signPayload(self):   
-        result = hmac.new(
-            base64.b64decode(self.secret),
-            self.encodedPayload,
-            digestmod = hashlib.sha256
-            ).digest()
+        signature = signPayload(self.secret, self.encodedPayload)
 
-        signature = base64.b64encode(result)
+        self.assertMultiLineEqual(signature, self.signature)
 
-        self.assertEqual(signature, self.signature)
+
 
 class NotificationReceiver_Test(unittest.TestCase):
 
@@ -96,15 +84,9 @@ class NotificationReceiver_Test(unittest.TestCase):
         self.assertEqual(self.secret, secret)
 
     def test_computeKey(self):
-        secret = orderSecret(self.merchantkey, '666')
-        result = hmac.new(
-            base64.b64decode(self.secret),
-            self.encodeddata,
-            digestmod = hashlib.sha256
-            ).digest()
-
-        signature = base64.urlsafe_b64encode(result)
+        signature = signPayload(self.secret, self.encodeddata, urlsafe=True)
         self.assertMultiLineEqual(self.signature, signature)
+
 
 unittest.TestCase.__str__ = unittest.TestCase.id
 

@@ -54,6 +54,27 @@ LANG_MAP = {
 }
 
 
+def orderSecret(key, order):
+    decodedkey = base64.b64decode(key)
+    k = pyDes.triple_des(
+        decodedkey,
+        pyDes.CBC,
+        b"\0\0\0\0\0\0\0\0",
+        pad='\0',
+        )
+    secret = k.encrypt(order)
+    return base64.b64encode(secret)
+
+def signPayload(secret, data, urlsafe=False):
+    result = hmac.new(
+        base64.b64decode(secret),
+        data,
+        digestmod = hashlib.sha256
+        ).digest()
+    encoder = base64.urlsafe_b64encode if urlsafe else base64.b64encode
+    return encoder(result)
+
+
 class Client(object):
     """Client"""
 
