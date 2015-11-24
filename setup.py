@@ -18,6 +18,7 @@ setup(name='sermepa',
       license='General Public Licence 2',
       long_description='''Long description''',
       provides=['sermepa'],
+      test_suite='sermepa',
       install_requires=[
         'pyDes',
         ],
