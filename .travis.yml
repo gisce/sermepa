@@ -3,7 +3,6 @@ python:
 - "2.7"
 script: coverage run ./setup.py test
 install:
-- pip install --allow-external --allow-unverified -r requirements.txt
 - pip install coveralls
 after_success:
 - coveralls
