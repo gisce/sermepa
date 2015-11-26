@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import unittest
+
 import base64
-import pyDes
-import hmac
-import hashlib
 import json
 from sermepa import orderSecret, signPayload, decodeSignedData, SignatureError, encodeSignedData
 
