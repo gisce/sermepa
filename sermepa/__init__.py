@@ -237,8 +237,9 @@ def encodeSignedData(merchantKey, **kwds):
 
     for param in kwds:
         if param not in DATA:
-            raise ValueError(u"The received parameter %s is not allowed."
-                             % param)
+            raise ValueError(
+                u"The received parameter %s is not allowed."
+                % param)
 
     return dict(
         Ds_SignatureVersion = 'HMAC_SHA256_V1',
