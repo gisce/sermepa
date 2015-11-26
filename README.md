@@ -2,6 +2,11 @@
 
 A python client for sending payment orders to the Sermepa service.
 
+## Installation
+
+```bash
+pip install .
+```
 
 ## Running tests
 

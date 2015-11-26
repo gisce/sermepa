@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 import unittest
@@ -116,6 +116,15 @@ class GeneratorFull_Test(Generator_Test):
                 **data
                 )
 
+    def test_encodeSignedData_whenNoOrder(self):
+        data = dict(self.data)
+        data['BadData'] = "value"
+        with self.assertRaises(ValueError):
+            encodeSignedData(
+                self.merchantkey,
+                **data
+                )
+
 
 class NotificationReceiver_Test(unittest.TestCase):
 
@@ -221,6 +230,34 @@ class NotificationReceiver_Test(unittest.TestCase):
                 )
         msg = cm.exception.args[0]
         self.assertEqual(msg, 'Bad signature')
+
+    def test_decodeSignedData_badParam(self):
+        json_data = '{"Ds_Order":"666", "Bad":"value"}'
+        base64_data = base64.urlsafe_b64encode(json_data)
+        signature = signPayload(self.secret, base64_data, urlsafe=True)
+        with self.assertRaises(SignatureError) as cm:
+            decodeSignedData(
+                self.merchantkey,
+                Ds_MerchantParameters = base64_data,
+                Ds_Signature = signature,
+                Ds_SignatureVersion = self.signatureversion,
+                )
+        msg = cm.exception.args[0]
+        self.assertEqual(msg, "Bad parameter 'Bad'")
+
+    def test_decodeSignedData_upperCaseOrder(self):
+        json_data = '{"DS_ORDER":"666"}'
+        base64_data = base64.urlsafe_b64encode(json_data)
+        signature = signPayload(self.secret, base64_data, urlsafe=True)
+        data = decodeSignedData(
+            self.merchantkey,
+            Ds_MerchantParameters = base64_data,
+            Ds_Signature = signature,
+            Ds_SignatureVersion = self.signatureversion,
+            )
+        self.assertEqual(data, dict(
+            Ds_Order = '666',
+            ))
 
 
 unittest.TestCase.__str__ = unittest.TestCase.id

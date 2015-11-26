@@ -13,28 +13,33 @@ import base64
 import hmac
 import json
 import pyDes
-
-DATA = [
-    'Ds_Merchant_Amount',
-    'Ds_Merchant_Currency',
-    'Ds_Merchant_Order',
-    'Ds_Merchant_ProductDescription',
-    'Ds_Merchant_Titular',
-    'Ds_Merchant_MerchantCode',
-    'Ds_Merchant_MerchantURL',
-    'Ds_Merchant_UrlOK',
-    'Ds_Merchant_UrlKO',
-    'Ds_Merchant_MerchantName',
-    'Ds_Merchant_ConsumerLanguage',
-    'Ds_Merchant_Terminal',
-    'Ds_Merchant_SumTotal',
-    'Ds_Merchant_TransactionType',
-    'Ds_Merchant_MerchantData',
-    'Ds_Merchant_DateFrecuency',
-    'Ds_Merchant_ChargeExpiryDate',
-    'Ds_Merchant_AuthorisationCode',
-    'Ds_Merchant_TransactionDate',
+MANDATORY_DATA = [
+    'Ds_Merchant_MerchantCode', # 9/N. Obligatorio. Código FUC asignado al comercio.
+    'Ds_Merchant_Terminal', # 3/N. Obligatorio. Número de terminal que le asignará su banco. Tres se considera su longitud máxima
+    'Ds_Merchant_TransactionType', # 1/N Obligatorio. para el comercio para indicar qué tipo de transacción es.
+    'Ds_Merchant_Amount', # 12/N. Obligatorio. Para Euros las dos últimas posiciones se consideran decimales.
+    'Ds_Merchant_Currency', # 4/N. Obligatorio. Se debe enviar el código numérico de la moneda según el ISO-4217
+        # Ejemplo: 978 euros, 840 dólares, 826 libras, 392 yenes... 4 se considera su longitud máxima
+    'Ds_Merchant_Order', # 4/N+8/AN. Obligatorio. Numero de pedido. [0-9]{4}[a-zA-z0-9]{0,8}
+    'Ds_Merchant_MerchantURL', # 250/AN Obligatorio si el comercio tiene notificación “online”.  URL del comercio que recibirá un post con los datos de la transacción.
+    'Ds_Merchant_SumTotal', # 12/N. Obligatorio. La suma total de los importes de las cuotas. Las dos últimas posiciones se consideran decimales.
 ]
+
+OPTIONAL_DATA = [
+    'Ds_Merchant_ProductDescription', # 125/AN Opcional. Este campo se mostrará al titular en la pantalla de confirmación de la compra.
+    'Ds_Merchant_Titular', # 60/A-N Opcional. Este campo se mostrará al titular en la pantalla de confirmación de la compra.  Nombre y apellidos del titular
+    'Ds_Merchant_UrlOK', # 250/AN Opcional. si se envía será utilizado como URLOK ignorando el configurado en el módulo de administración en caso de tenerlo.
+    'Ds_Merchant_UrlKO', # 250/AN Opcional. si se envía será utilizado como URLKO ignorando el configurado en el módulo de administración en caso de tenerlo
+    'Ds_Merchant_MerchantName', # 25/A-N Opcional. será el nombre del comercio que aparecerá en el ticket del cliente.
+    'Ds_Merchant_ConsumerLanguage', # 3/N. Opcional. El Valor 0, si es desconocido.
+    'Ds_Merchant_MerchantData', # 1024 /AN Opcional. Datos recibidos por el comerciante en la respuesta online.
+    'Ds_Merchant_DateFrecuency', # 5/N Frecuencia en días para las transacciones recurrentes y recurrentes diferidas (obligatorio para recurrentes)
+    'Ds_Merchant_ChargeExpiryDate', # 10/AN Formato yyyy-MM-dd fecha límite para las transacciones Recurrentes (Obligatorio para recurrentes y recurrentes diferidas )
+    'Ds_Merchant_AuthorisationCode', # 6/N Opcional. Representa el código de autorización necesario para identificar una transacción recurrente sucesiva en las devoluciones de operaciones recurrentes sucesivas. Obligatorio en devoluciones de operaciones recurrentes.
+    'Ds_Merchant_TransactionDate', # 10/AN Opcional. Formato yyyy-mm-dd. Representa la fecha de la cuota sucesiva, necesaria para identificar la transacción en las devoluciones.  Obligatorio en las devoluciones de cuotas sucesivas y de cuotas sucesivas diferidas.
+]
+DATA = MANDATORY_DATA + OPTIONAL_DATA
+
 
 LANG_MAP = {
   '001': 'es_ES',
@@ -52,6 +57,23 @@ LANG_MAP = {
   '013': 'eu_ES',
   '208': 'da_DK',
 }
+
+transactionTypes = [
+    ('0', 'Autorización'),
+    ('1', 'Preautorización'),
+    ('2', 'Confirmación de preautorización'),
+    ('3', 'Devolución Automática'),
+    ('5', 'Transacción Recurrente'),
+    ('6', 'Transacción Sucesiva'),
+    ('7', 'Pre-autenticación'),
+    ('8', 'Confirmación de pre-autenticación'),
+    ('9', 'Anulación de Preautorización'),
+    ('O', 'Autorización en diferido'),
+    ('P', 'onfirmación de autorización en diferido'),
+    ('Q', 'Anulación de autorización en diferido'),
+    ('R', 'Cuota inicial diferido'),
+    ('S', 'Cuota sucesiva diferido'),
+]
 
 
 def orderSecret(key, order):
@@ -91,6 +113,15 @@ def signPayload(secret, data, urlsafe=False):
 
 class SignatureError(Exception): pass
 
+_notification_fields = [
+    'Ds_Order',
+    # TODO: More!
+    ]
+_notification_fields_upper = dict(
+    (key.upper(), key)
+    for key in _notification_fields
+    )
+
 def decodeSignedData(
         merchantKey,
         Ds_MerchantParameters,
@@ -115,16 +146,28 @@ def decodeSignedData(
         error('Bad JSON format')
 
     try:
-        # TODO: It could be 'DS_ORDER' as well
         orderid = data['Ds_Order']
     except KeyError:
-        error('Missing Ds_Order attribute')
+        try:
+            orderid = data['DS_ORDER']
+        except KeyError:
+            error('Missing Ds_Order attribute')
 
     orderkey = orderSecret(merchantKey, orderid.encode('utf-8'))
     signature = signPayload(orderkey, Ds_MerchantParameters, urlsafe = True)
 
     if signature != Ds_Signature:
         error("Bad signature")
+
+    for key in data :
+        if key in _notification_fields_upper:
+            camell = _notification_fields_upper[key]
+            data[camell]=data[key]
+            del data[key]
+            continue
+
+        if key not in _notification_fields:
+            error("Bad parameter '{}'".format(key))
 
     return data
 
@@ -133,6 +176,11 @@ def encodeSignedData(merchantKey, **kwds):
     b64params = base64.b64encode(params_json)
     secret = orderSecret(merchantKey, kwds['Ds_Merchant_Order'])
     signature = signPayload(secret, b64params)
+
+    for param in kwds:
+        if param not in DATA:
+            raise ValueError(u"The received parameter %s is not allowed."
+                             % param)
 
     return dict(
         Ds_SignatureVersion = 'HMAC_SHA256_V1',
