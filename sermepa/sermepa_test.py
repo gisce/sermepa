@@ -5,7 +5,13 @@ import unittest
 
 import base64
 import json
+import re
 from sermepa import orderSecret, signPayload, decodeSignedData, SignatureError, encodeSignedData
+
+try:
+    import config
+except ImportError:
+    config = None
 
 
 class Generator_Test(unittest.TestCase):
@@ -50,7 +56,7 @@ class Generator_Test(unittest.TestCase):
 
         self.assertEqual(self.secret, secret)
 
-    def test_signPayload(self):   
+    def test_signPayload(self):
         signature = signPayload(self.secret, self.encodedPayload)
 
         self.assertMultiLineEqual(signature, self.signature)
@@ -122,6 +128,102 @@ class GeneratorFull_Test(Generator_Test):
                 self.merchantkey,
                 **data
                 )
+
+    def test_sendingPost_testing(self):
+
+        data = dict(
+            Ds_Merchant_Amount = "10000",
+            Ds_Merchant_ConsumerLanguage = "003",
+            Ds_Merchant_Currency = "978",
+            Ds_Merchant_MerchantCode = config.redsystest['merchantcode'],
+            Ds_Merchant_MerchantData = "COBRAMENT QUOTA SOCI",
+            Ds_Merchant_MerchantName = "SOM ENERGIA, SCCL",
+            Ds_Merchant_MerchantURL = "https://testing.somenergia.coop:5001/pagament/notificacio",
+            Ds_Merchant_Order = "20167db2f375",
+            Ds_Merchant_ProductDescription = "Alta de soci SOMENERGIA",
+            Ds_Merchant_SumTotal = "10000",
+            Ds_Merchant_Terminal = "1",
+            Ds_Merchant_Titular = "SOM ENERGIA, SCCL",
+            Ds_Merchant_TransactionType = "0",
+            Ds_Merchant_UrlKO = "https://www.somenergia.coop/es/pago-cancelado",
+            Ds_Merchant_UrlOK = "https://www.somenergia.coop/es/pago-realizado",
+            )
+        import requests
+        r = requests.post('https://sis-t.redsys.es:25443/sis/realizarPago',
+            data = encodeSignedData(
+                config.redsystest['merchantkey'],
+                **data
+                )
+
+            )
+
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn('RSisException', r.text)
+        self.assertFalse(re.match('SIS[0-9]', r.text))
+
+    def test_sendingPost_testingFails(self):
+
+        data = dict(
+            Ds_Merchant_Amount = "10000",
+            Ds_Merchant_ConsumerLanguage = "003",
+            Ds_Merchant_Currency = "978",
+            Ds_Merchant_MerchantCode = "999008880", # bad user
+            Ds_Merchant_MerchantData = "COBRAMENT QUOTA SOCI",
+            Ds_Merchant_MerchantName = "SOM ENERGIA, SCCL",
+            Ds_Merchant_MerchantURL = "https://testing.somenergia.coop:5001/pagament/notificacio",
+            Ds_Merchant_Order = "20167db2f375",
+            Ds_Merchant_ProductDescription = "Alta de soci SOMENERGIA",
+            Ds_Merchant_SumTotal = "10000",
+            Ds_Merchant_Terminal = "1",
+            Ds_Merchant_Titular = "SOM ENERGIA, SCCL",
+            Ds_Merchant_TransactionType = "0",
+            Ds_Merchant_UrlKO = "https://www.somenergia.coop/es/pago-cancelado",
+            Ds_Merchant_UrlOK = "https://www.somenergia.coop/es/pago-realizado",
+            )
+        import requests
+        r = requests.post('https://sis-t.redsys.es:25443/sis/realizarPago',
+            data = encodeSignedData(
+                config.redsystest['merchantkey'],
+                **data
+                )
+            )
+
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('RSisException', r.text)
+        self.assertIn('<!--SIS0026:-->', r.text)
+
+    @unittest.skipIf(not config, "Requires a config.py file with your production keys")
+    def test_sendingPost_production(self):
+
+        data = dict(
+            Ds_Merchant_Amount = "10000",
+            Ds_Merchant_ConsumerLanguage = "003",
+            Ds_Merchant_Currency = "978",
+            Ds_Merchant_MerchantCode = config.redsys['merchantcode'],
+            Ds_Merchant_MerchantData = "COBRAMENT QUOTA SOCI",
+            Ds_Merchant_MerchantName = "SOM ENERGIA, SCCL",
+            Ds_Merchant_MerchantURL = "https://testing.somenergia.coop:5001/pagament/notificacio",
+            Ds_Merchant_Order = "201671121375",
+            Ds_Merchant_ProductDescription = "Alta de soci SOMENERGIA",
+            Ds_Merchant_SumTotal = "10000",
+            Ds_Merchant_Terminal = "1",
+            Ds_Merchant_Titular = "SOM ENERGIA, SCCL",
+            Ds_Merchant_TransactionType = "0",
+            Ds_Merchant_UrlKO = "https://www.somenergia.coop/es/pago-cancelado",
+            Ds_Merchant_UrlOK = "https://www.somenergia.coop/es/pago-realizado",
+            )
+        import requests
+        r = requests.post('https://sis.redsys.es/sis/realizarPago',
+            data = encodeSignedData(
+#                'sq7HjrUOBfKmC576ILgskD5srU870gJ7', # Clave para tests
+                config.redsys['merchantkey'],
+                **data
+                )
+            )
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn('RSisException', r.text)
+        self.assertFalse(re.match('SIS[0-9]', r.text))
+
 
 
 class NotificationReceiver_Test(unittest.TestCase):
@@ -262,7 +364,7 @@ unittest.TestCase.__str__ = unittest.TestCase.id
 
 if __name__ == '__main__':
     import sys
-    code = unittest.maini()
+    code = unittest.main()
     sys.exit(code)
 
 

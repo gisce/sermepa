@@ -287,12 +287,12 @@ class Client(object):
             'Ds_Merchant_TransactionType': self.Ds_Merchant_TransactionType \
                 or '0',
             'Ds_Merchant_MerchantData': self.Ds_Merchant_MerchantData[:1024],
-            'Ds_Merchant_DateFrecuency': self.Ds_Merchant_DateFrecuency,
-            'Ds_Merchant_ChargeExpiryDate':
-                (self.Ds_Merchant_ChargeExpiryDate and
-                 self.Ds_Merchant_ChargeExpiryDate[:10] or None),
-            'Ds_Merchant_AuthorisationCode': self.Ds_Merchant_AuthorisationCode,
-            'Ds_Merchant_TransactionDate': self.Ds_Merchant_TransactionDate,
+#            'Ds_Merchant_DateFrecuency': self.Ds_Merchant_DateFrecuency,
+#            'Ds_Merchant_ChargeExpiryDate':
+#                (self.Ds_Merchant_ChargeExpiryDate and
+#                 self.Ds_Merchant_ChargeExpiryDate[:10] or None),
+#            'Ds_Merchant_AuthorisationCode': self.Ds_Merchant_AuthorisationCode,
+#            'Ds_Merchant_TransactionDate': self.Ds_Merchant_TransactionDate,
             })
 
 
