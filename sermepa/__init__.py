@@ -14,6 +14,12 @@ import hmac
 import json
 import pyDes
 
+# Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 MANDATORY_DATA = [
     'Ds_Merchant_MerchantCode', # 9/N. Obligatorio. Código FUC asignado al comercio.
     'Ds_Merchant_Terminal', # 3/N. Obligatorio. Número de terminal que le asignará su banco. Tres se considera su longitud máxima

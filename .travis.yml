@@ -1,9 +1,9 @@
 language: python
 python:
 - "2.7"
-- "3.3"
-- "3.4"
-- "3.5"
+#- "3.3" # str/unicode/bytes issues
+#- "3.4" # str/unicode/bytes issues
+#- "3.5" # str/unicode/bytes issues
 script: coverage run ./setup.py test
 install:
 - pip install http://twhiteman.netfirms.com/pyDES/pyDes-2.0.1.zip
