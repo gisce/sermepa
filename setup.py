@@ -13,7 +13,7 @@ PACKAGES_DATA = {}
 
 setup(
     name='sermepa',
-    version='0.1.1-dev',
+    version='0.1.2',
     description = __doc__,
     author='GISCE Enginyeria',
     author_email='devel@gisce.net',
