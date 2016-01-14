@@ -130,7 +130,7 @@ class GeneratorFull_Test(Generator_Test):
                 )
 
     @unittest.skipIf(not config, "Requires a config.py file")
-    @unittest.skipIf('redsystest' not in config.__dict__,
+    @unittest.skipIf(config and 'redsystest' not in config.__dict__,
         "redsystest dictionary missing in config.py")
     def test_sendingPost_testing(self):
 
@@ -226,7 +226,7 @@ class GeneratorFull_Test(Generator_Test):
         self.assertIn('<!--SIS0026:-->', r.text)
 
     @unittest.skipIf(not config, "Requires a config.py file")
-    @unittest.skipIf('redsys' not in config.__dict__,
+    @unittest.skipIf(config and 'redsys' not in config.__dict__,
         "redsys dictionary missing in config.py")
     def test_sendingPost_production(self):
 
