@@ -185,7 +185,7 @@ class GeneratorFull_Test(Generator_Test):
         import requests
         r = requests.post('https://sis-t.redsys.es:25443/sis/realizarPago',
             data = encodeSignedData(
-                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', # bad user
+                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', # bad key
                 **data
                 )
             )
@@ -226,7 +226,7 @@ class GeneratorFull_Test(Generator_Test):
         self.assertIn('<!--SIS0026:-->', r.text)
 
     @unittest.skipIf(not config, "Requires a config.py file")
-    @unittest.skipIf('redsys' in config.__dict__,
+    @unittest.skipIf('redsys' not in config.__dict__,
         "redsys dictionary missing in config.py")
     def test_sendingPost_production(self):
 
