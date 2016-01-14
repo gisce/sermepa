@@ -129,6 +129,9 @@ class GeneratorFull_Test(Generator_Test):
                 **data
                 )
 
+    @unittest.skipIf(not config, "Requires a config.py file")
+    @unittest.skipIf('redsystest' not in config.__dict__,
+        "redsystest dictionary missing in config.py")
     def test_sendingPost_testing(self):
 
         data = dict(
@@ -154,20 +157,19 @@ class GeneratorFull_Test(Generator_Test):
                 config.redsystest['merchantkey'],
                 **data
                 )
-
             )
 
         self.assertEqual(r.status_code, 200)
         self.assertNotIn('RSisException', r.text)
         self.assertFalse(re.match('SIS[0-9]', r.text))
 
-    def test_sendingPost_testingFails(self):
+    def test_sendingPost_testing_invalidSignature(self):
 
         data = dict(
             Ds_Merchant_Amount = "10000",
             Ds_Merchant_ConsumerLanguage = "003",
             Ds_Merchant_Currency = "978",
-            Ds_Merchant_MerchantCode = "999008880", # bad user
+            Ds_Merchant_MerchantCode = "999008881", # testing user
             Ds_Merchant_MerchantData = "COBRAMENT QUOTA SOCI",
             Ds_Merchant_MerchantName = "SOM ENERGIA, SCCL",
             Ds_Merchant_MerchantURL = "https://testing.somenergia.coop:5001/pagament/notificacio",
@@ -183,7 +185,38 @@ class GeneratorFull_Test(Generator_Test):
         import requests
         r = requests.post('https://sis-t.redsys.es:25443/sis/realizarPago',
             data = encodeSignedData(
-                config.redsystest['merchantkey'],
+                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', # bad user
+                **data
+                )
+            )
+
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('RSisException', r.text)
+        self.assertIn('<!--SIS0042:-->', r.text)
+
+    def test_sendingPost_testingFails_invalidUser(self):
+
+        data = dict(
+            Ds_Merchant_Amount = "10000",
+            Ds_Merchant_ConsumerLanguage = "003",
+            Ds_Merchant_Currency = "978",
+            Ds_Merchant_MerchantCode = "999999999", # bad user
+            Ds_Merchant_MerchantData = "COBRAMENT QUOTA SOCI",
+            Ds_Merchant_MerchantName = "SOM ENERGIA, SCCL",
+            Ds_Merchant_MerchantURL = "https://testing.somenergia.coop:5001/pagament/notificacio",
+            Ds_Merchant_Order = "20167db2f375",
+            Ds_Merchant_ProductDescription = "Alta de soci SOMENERGIA",
+            Ds_Merchant_SumTotal = "10000",
+            Ds_Merchant_Terminal = "1",
+            Ds_Merchant_Titular = "SOM ENERGIA, SCCL",
+            Ds_Merchant_TransactionType = "0",
+            Ds_Merchant_UrlKO = "https://www.somenergia.coop/es/pago-cancelado",
+            Ds_Merchant_UrlOK = "https://www.somenergia.coop/es/pago-realizado",
+            )
+        import requests
+        r = requests.post('https://sis-t.redsys.es:25443/sis/realizarPago',
+            data = encodeSignedData(
+                'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
                 **data
                 )
             )
@@ -192,7 +225,9 @@ class GeneratorFull_Test(Generator_Test):
         self.assertIn('RSisException', r.text)
         self.assertIn('<!--SIS0026:-->', r.text)
 
-    @unittest.skipIf(not config, "Requires a config.py file with your production keys")
+    @unittest.skipIf(not config, "Requires a config.py file")
+    @unittest.skipIf('redsys' in config.__dict__,
+        "redsys dictionary missing in config.py")
     def test_sendingPost_production(self):
 
         data = dict(
