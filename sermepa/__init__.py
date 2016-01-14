@@ -270,8 +270,8 @@ class Client(object):
             setattr(self, param, transaction_params[param])
 
         return encodeSignedData(self.priv_key, **{
-            'Ds_Merchant_Amount': int(self.Ds_Merchant_Amount * 100),
-            'Ds_Merchant_Currency': self.Ds_Merchant_Currency or 978, # EUR
+            'Ds_Merchant_Amount': str(int(self.Ds_Merchant_Amount * 100)),
+            'Ds_Merchant_Currency': self.Ds_Merchant_Currency or '978', # EUR
             'Ds_Merchant_Order': self.Ds_Merchant_Order[:12],
             'Ds_Merchant_ProductDescription':
                 self.Ds_Merchant_ProductDescription[:125],
@@ -283,7 +283,7 @@ class Client(object):
             'Ds_Merchant_MerchantName': self.Ds_Merchant_MerchantName[:25],
             'Ds_Merchant_ConsumerLanguage': self.Ds_Merchant_ConsumerLanguage,
             'Ds_Merchant_Terminal': self.Ds_Merchant_Terminal or '1',
-            'Ds_Merchant_SumTotal': int(self.Ds_Merchant_SumTotal * 100),
+            'Ds_Merchant_SumTotal': str(int(self.Ds_Merchant_SumTotal * 100)),
             'Ds_Merchant_TransactionType': self.Ds_Merchant_TransactionType \
                 or '0',
             'Ds_Merchant_MerchantData': self.Ds_Merchant_MerchantData[:1024],
