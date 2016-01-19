@@ -423,6 +423,25 @@ class NotificationReceiver_Test(unittest.TestCase):
 
         self.assertTrue('Ds_Order' in data)
 
+        # TODO
+        failingopdata = {
+            "Ds_Date":"19%2F01%2F2016",
+            "Ds_Hour":"23%3A02",
+            "Ds_SecurePayment":"0",
+            "Ds_Card_Country":"0",
+            "Ds_Amount":"10000",
+            "Ds_Currency":"978",
+            "Ds_Order":"2016b99271e7",
+            "Ds_MerchantCode":"142003748",
+            "Ds_Terminal":"001",
+            "Ds_Response":"0180",
+            "Ds_MerchantData":"COBRAMENT+QUOTA+SOCI",
+            "Ds_TransactionType":"0",
+            "Ds_ConsumerLanguage":"3",
+            "Ds_ErrorCode":"SIS0093",
+            "Ds_AuthorisationCode":"++++++",
+            }
+
 
 
 unittest.TestCase.__str__ = unittest.TestCase.id

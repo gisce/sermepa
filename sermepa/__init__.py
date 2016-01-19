@@ -63,6 +63,7 @@ _notification_fields = [
     'Ds_AuthorisationCode', #  6/ A-N Opcional: Código alfanumérico de autorización asignado a la aprobación de la transacción por la institución autorizadora.
     'Ds_ConsumerLanguage', #  3 / Núm Opcional: El valor 0, indicará que no se ha determinado el idioma del cliente.  (opcional). 3 se considera su longitud máxima.
     'Ds_Card_Type', #  1 / A-N Opcional: Valores posibles: C – Crédito D - Débito
+    'Ds_ErrorCode', # TODO: Look at the docs
     ]
 _notification_fields_upper = dict(
     (key.upper(), key)
