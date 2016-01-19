@@ -199,8 +199,13 @@ def decodeSignedData(
     if Ds_SignatureVersion != 'HMAC_SHA256_V1':
         error('Unsupported signature version')
 
+    def tobytes(data):
+        if hasattr(data, 'encode'):
+            return data.encode()
+        return data
+
     try:
-        json_data = base64.urlsafe_b64decode(Ds_MerchantParameters)
+        json_data = base64.urlsafe_b64decode(tobytes(Ds_MerchantParameters))
     except:
         error('Unable to decode base 64')
 

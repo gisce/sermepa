@@ -394,6 +394,36 @@ class NotificationReceiver_Test(unittest.TestCase):
             Ds_Order = '666',
             ))
 
+    @unittest.skipIf(not config, "Requires a config.py file")
+    @unittest.skipIf(config and 'redsystest' not in config.__dict__,
+        "redsystest dictionary missing in config.py")
+    def test_decodeSignedData_unicode(self):
+        data = decodeSignedData(
+            config.redsystest['merchantkey'],
+            Ds_Signature = u'k6jn15PV1PyoTOAkiHVIPixOERFT9CeKOERtAJkcsMg=',
+            Ds_MerchantParameters = u'eyJEc19EYXRlIjoiMTklMkYwMSUyRjIwMTYiLCJEc19Ib3VyIjoiMjIlM0EwNCIsIkRzX1NlY3VyZVBheW1lbnQiOiIxIiwiRHNfQ2FyZF9Db3VudHJ5IjoiNzI0IiwiRHNfQW1vdW50IjoiMTAwMDAiLCJEc19DdXJyZW5jeSI6Ijk3OCIsIkRzX09yZGVyIjoiMjAxNjQ5NDU1YjZmIiwiRHNfTWVyY2hhbnRDb2RlIjoiMTQyMDAzNzQ4IiwiRHNfVGVybWluYWwiOiIwMDEiLCJEc19SZXNwb25zZSI6IjAwMDAiLCJEc19NZXJjaGFudERhdGEiOiJDT0JSQU1FTlQrUVVPVEErU09DSSIsIkRzX1RyYW5zYWN0aW9uVHlwZSI6IjAiLCJEc19Db25zdW1lckxhbmd1YWdlIjoiMyIsIkRzX0F1dGhvcmlzYXRpb25Db2RlIjoiMjAxMzg4In0=',
+            Ds_SignatureVersion = u'HMAC_SHA256_V1',
+            )
+        self.assertEqual({
+            'Ds_Amount': u'10000',
+            'Ds_AuthorisationCode': u'201388',
+            'Ds_Card_Country': u'724',
+            'Ds_ConsumerLanguage': u'3',
+            'Ds_Currency': u'978',
+            'Ds_Date': u'19%2F01%2F2016',
+            'Ds_Hour': u'22%3A04',
+            'Ds_MerchantCode': u'142003748',
+            'Ds_MerchantData': u'COBRAMENT+QUOTA+SOCI',
+            'Ds_Order': u'201649455b6f',
+            'Ds_Response': u'0000',
+            'Ds_SecurePayment': u'1',
+            'Ds_Terminal': u'001',
+            'Ds_TransactionType': u'0',
+            }, data)
+
+        self.assertTrue('Ds_Order' in data)
+
+
 
 unittest.TestCase.__str__ = unittest.TestCase.id
 
