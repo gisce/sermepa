@@ -19,7 +19,7 @@ setup(
     author_email='devel@gisce.net',
     url='http://www.gisce.net',
     license='General Public Licence 2 or later',
-    long_de:scription=longdesc,
+    long_description=longdesc,
     provides=['sermepa'],
     test_suite='sermepa',
     install_requires=[
@@ -30,7 +30,6 @@ setup(
         'requests',
         ],
     packages=find_packages(),
-    exclude
     package_data=PACKAGES_DATA,
     scripts=[],
 )
