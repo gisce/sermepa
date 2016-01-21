@@ -3,12 +3,12 @@
 """\
 A client to submit payment orders to the Sermepa service.
 """
-from setuptools import setup
+
+from setuptools import setup, find_packages
 
 with open("README.md") as readme:
     longdesc = readme.read()
 
-PACKAGES = ['sermepa', ]
 PACKAGES_DATA = {}
 
 setup(
@@ -18,8 +18,8 @@ setup(
     author='GISCE Enginyeria',
     author_email='devel@gisce.net',
     url='http://www.gisce.net',
-    license='General Public Licence 2',
-    long_description='''Long description''',
+    license='General Public Licence 2 or later',
+    long_de:scription=longdesc,
     provides=['sermepa'],
     test_suite='sermepa',
     install_requires=[
@@ -29,7 +29,8 @@ setup(
     test_require=[
         'requests',
         ],
-    packages=PACKAGES,
+    packages=find_packages(),
+    exclude
     package_data=PACKAGES_DATA,
     scripts=[],
 )
