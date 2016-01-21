@@ -64,7 +64,7 @@ class Generator_Test(unittest.TestCase):
 class GeneratorFull_Test(Generator_Test):
 
     data = dict(
-        Ds_Merchant_MerchantCode = 'the_sermepa_user',
+        Ds_Merchant_MerchantCode = '123456789',
         Ds_Merchant_Order = '1447961844',
         Ds_Merchant_Amount = '10000',
         Ds_Merchant_ProductDescription = 'the_name_of_the_product',
@@ -83,19 +83,19 @@ class GeneratorFull_Test(Generator_Test):
     encodedPayload = (
         "eyJEc19NZXJjaGFudF9BbW91bnQiOiAiMTAwMDAiLCAiRHNfTWVyY2hhbnRfQ29uc"
         "3VtZXJMYW5ndWFnZSI6ICIwMDEiLCAiRHNfTWVyY2hhbnRfTWVyY2hhbnRDb2RlIj"
-        "ogInRoZV9zZXJtZXBhX3VzZXIiLCAiRHNfTWVyY2hhbnRfTWVyY2hhbnREYXRhIjo"
-        "gIkNPQlJBTUVOVCBRVU9UQSBTT0NJIiwgIkRzX01lcmNoYW50X01lcmNoYW50TmFt"
-        "ZSI6ICJ0aGVfbWVyY2hhbnRfbmFtZSIsICJEc19NZXJjaGFudF9NZXJjaGFudFVST"
-        "CI6ICJ0aGVfdXJsX3RvX2JlX25vdGlmaWVkX2F0IiwgIkRzX01lcmNoYW50X09yZG"
-        "VyIjogIjE0NDc5NjE4NDQiLCAiRHNfTWVyY2hhbnRfUHJvZHVjdERlc2NyaXB0aW9"
-        "uIjogInRoZV9uYW1lX29mX3RoZV9wcm9kdWN0IiwgIkRzX01lcmNoYW50X1N1bVRv"
-        "dGFsIjogIjEwMDAwIiwgIkRzX01lcmNoYW50X1Rlcm1pbmFsIjogIjEiLCAiRHNfT"
-        "WVyY2hhbnRfVGl0dWxhciI6ICJ0aGVfb3duZXJfb2ZfdGhlX2FjY291bnQiLCAiRH"
-        "NfTWVyY2hhbnRfVHJhbnNhY3Rpb25UeXBlIjogIjAiLCAiRHNfTWVyY2hhbnRfVXJ"
-        "sS08iOiAidGhlX3VybF9mb3JfZmFpbHVyZSIsICJEc19NZXJjaGFudF9VcmxPSyI6"
-        "ICJ0aGVfdXJsX2Zvcl9zdWNjZXNzIn0="
+        "ogIjEyMzQ1Njc4OSIsICJEc19NZXJjaGFudF9NZXJjaGFudERhdGEiOiAiQ09CUkF"
+        "NRU5UIFFVT1RBIFNPQ0kiLCAiRHNfTWVyY2hhbnRfTWVyY2hhbnROYW1lIjogInRo"
+        "ZV9tZXJjaGFudF9uYW1lIiwgIkRzX01lcmNoYW50X01lcmNoYW50VVJMIjogInRoZ"
+        "V91cmxfdG9fYmVfbm90aWZpZWRfYXQiLCAiRHNfTWVyY2hhbnRfT3JkZXIiOiAiMT"
+        "Q0Nzk2MTg0NCIsICJEc19NZXJjaGFudF9Qcm9kdWN0RGVzY3JpcHRpb24iOiAidGh"
+        "lX25hbWVfb2ZfdGhlX3Byb2R1Y3QiLCAiRHNfTWVyY2hhbnRfU3VtVG90YWwiOiAi"
+        "MTAwMDAiLCAiRHNfTWVyY2hhbnRfVGVybWluYWwiOiAiMSIsICJEc19NZXJjaGFud"
+        "F9UaXR1bGFyIjogInRoZV9vd25lcl9vZl90aGVfYWNjb3VudCIsICJEc19NZXJjaG"
+        "FudF9UcmFuc2FjdGlvblR5cGUiOiAiMCIsICJEc19NZXJjaGFudF9VcmxLTyI6ICJ"
+        "0aGVfdXJsX2Zvcl9mYWlsdXJlIiwgIkRzX01lcmNoYW50X1VybE9LIjogInRoZV91"
+        "cmxfZm9yX3N1Y2Nlc3MifQ=="
         )
-    signature = "eg0L/kTPyflwoOV0djlsCB/K4Uw5+balc7dyMkUjBIE="
+    signature = "/kyUzlJHCwu/oSDr011tDjmJbvuUtIRP5EE3iiZ/Acg="
 
     def setUp(self):
         self.maxDiff = None
@@ -128,6 +128,19 @@ class GeneratorFull_Test(Generator_Test):
                 self.merchantkey,
                 **data
                 )
+
+    def test_encodeSignedData_whenValueTooLong(self):
+        data = dict(self.data)
+        data['Ds_Merchant_ProductDescription'] = "M"+"0123456789"*300
+        result = encodeSignedData(
+                self.merchantkey,
+                **data
+                )
+        reverted = json.loads(base64.b64decode(result['Ds_MerchantParameters']))
+        revertedDescription = reverted['Ds_Merchant_ProductDescription']
+        self.assertTrue(revertedDescription.startswith("M01234"))
+        self.assertEqual(len(revertedDescription), 125)
+
 
     @unittest.skipIf(not config, "Requires a config.py file")
     @unittest.skipIf(config and 'redsystest' not in config.__dict__,

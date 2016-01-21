@@ -20,32 +20,66 @@ try:
 except NameError:
     xrange = range
 
-MANDATORY_DATA = [
-    'Ds_Merchant_MerchantCode', # 9/N. Obligatorio. Código FUC asignado al comercio.
-    'Ds_Merchant_Terminal', # 3/N. Obligatorio. Número de terminal que le asignará su banco. Tres se considera su longitud máxima
-    'Ds_Merchant_TransactionType', # 1/N Obligatorio. para el comercio para indicar qué tipo de transacción es.
-    'Ds_Merchant_Amount', # 12/N. Obligatorio. Para Euros las dos últimas posiciones se consideran decimales.
-    'Ds_Merchant_Currency', # 4/N. Obligatorio. Se debe enviar el código numérico de la moneda según el ISO-4217
+# M/O Mandatory/Optional
+# N: Numeric, A: Alphanumeric, D: ISO date, M: Money in cents
+# Max lenght
+# Name
+_request_fields = [
+    ('M','N',   9, 'Ds_Merchant_MerchantCode'),
+        # Código FUC asignado al comercio.
+    ('M','N',   3, 'Ds_Merchant_Terminal'),
+        # 3/N. Obligatorio. Número de terminal que le asignará su banco. Tres se considera su longitud máxima
+    ('M','N',   1, 'Ds_Merchant_TransactionType'),
+        # 1/N Obligatorio. para el comercio para indicar qué tipo de transacción es.
+    ('M','M',  12, 'Ds_Merchant_Amount'),
+        # Para Euros las dos últimas posiciones se consideran decimales.
+    ('M','N',   4, 'Ds_Merchant_Currency'),
+        # Se debe enviar el código numérico de la moneda según el ISO-4217
         # Ejemplo: 978 euros, 840 dólares, 826 libras, 392 yenes... 4 se considera su longitud máxima
-    'Ds_Merchant_Order', # 4/N+8/AN. Obligatorio. Numero de pedido. [0-9]{4}[a-zA-z0-9]{0,8}
-    'Ds_Merchant_MerchantURL', # 250/AN Obligatorio si el comercio tiene notificación “online”.  URL del comercio que recibirá un post con los datos de la transacción.
-    'Ds_Merchant_SumTotal', # 12/N. Obligatorio. La suma total de los importes de las cuotas. Las dos últimas posiciones se consideran decimales.
+    ('M','A',  12, 'Ds_Merchant_Order'),
+        # Numero de pedido. [0-9]{4}[a-zA-z0-9]{0,8}
+    ('M','A', 250, 'Ds_Merchant_MerchantURL'),
+        # Obligatorio si el comercio tiene notificación “online”.  URL del comercio que recibirá un post con los datos de la transacción.
+    ('M','M',  12, 'Ds_Merchant_SumTotal'),
+        # La suma total de los importes de las cuotas. Las dos últimas posiciones se consideran decimales.
+    ('O','A', 125, 'Ds_Merchant_ProductDescription'),
+        # Este campo se mostrará al titular en la pantalla de confirmación de la compra.
+    ('O','A',  60, 'Ds_Merchant_Titular'),
+        # Este campo se mostrará al titular en la pantalla de confirmación de la compra.  Nombre y apellidos del titular
+    ('O','A', 250, 'Ds_Merchant_UrlOK'),
+        # si se envía será utilizado como URLOK ignorando el configurado en el módulo de administración en caso de tenerlo.
+    ('O','A', 250, 'Ds_Merchant_UrlKO'),
+        # si se envía será utilizado como URLKO ignorando el configurado en el módulo de administración en caso de tenerlo
+    ('O','A',  25, 'Ds_Merchant_MerchantName'),
+        # será el nombre del comercio que aparecerá en el ticket del cliente.
+    ('O','N',   3, 'Ds_Merchant_ConsumerLanguage'),
+        # El Valor 0, si es desconocido.
+    ('O','A',1024, 'Ds_Merchant_MerchantData'),
+        # Datos recibidos por el comerciante en la respuesta online.
+    ('O','N',   5, 'Ds_Merchant_DateFrecuency'),
+        # Frecuencia en días para las transacciones recurrentes y recurrentes diferidas (obligatorio para recurrentes)
+    ('O','D',  10, 'Ds_Merchant_ChargeExpiryDate'),
+        # fecha límite para las transacciones Recurrentes (Obligatorio para recurrentes y recurrentes diferidas )
+    ('O','N',   6, 'Ds_Merchant_AuthorisationCode'),
+        # Representa el código de autorización necesario para identificar una transacción recurrente sucesiva en las devoluciones de operaciones recurrentes sucesivas. Obligatorio en devoluciones de operaciones recurrentes.
+    ('O','D',  10, 'Ds_Merchant_TransactionDate'),
+        # Representa la fecha de la cuota sucesiva, necesaria para identificar la transacción en las devoluciones.  Obligatorio en las devoluciones de cuotas sucesivas y de cuotas sucesivas diferidas.
 ]
 
-OPTIONAL_DATA = [
-    'Ds_Merchant_ProductDescription', # 125/AN Opcional. Este campo se mostrará al titular en la pantalla de confirmación de la compra.
-    'Ds_Merchant_Titular', # 60/A-N Opcional. Este campo se mostrará al titular en la pantalla de confirmación de la compra.  Nombre y apellidos del titular
-    'Ds_Merchant_UrlOK', # 250/AN Opcional. si se envía será utilizado como URLOK ignorando el configurado en el módulo de administración en caso de tenerlo.
-    'Ds_Merchant_UrlKO', # 250/AN Opcional. si se envía será utilizado como URLKO ignorando el configurado en el módulo de administración en caso de tenerlo
-    'Ds_Merchant_MerchantName', # 25/A-N Opcional. será el nombre del comercio que aparecerá en el ticket del cliente.
-    'Ds_Merchant_ConsumerLanguage', # 3/N. Opcional. El Valor 0, si es desconocido.
-    'Ds_Merchant_MerchantData', # 1024 /AN Opcional. Datos recibidos por el comerciante en la respuesta online.
-    'Ds_Merchant_DateFrecuency', # 5/N Frecuencia en días para las transacciones recurrentes y recurrentes diferidas (obligatorio para recurrentes)
-    'Ds_Merchant_ChargeExpiryDate', # 10/AN Formato yyyy-MM-dd fecha límite para las transacciones Recurrentes (Obligatorio para recurrentes y recurrentes diferidas )
-    'Ds_Merchant_AuthorisationCode', # 6/N Opcional. Representa el código de autorización necesario para identificar una transacción recurrente sucesiva en las devoluciones de operaciones recurrentes sucesivas. Obligatorio en devoluciones de operaciones recurrentes.
-    'Ds_Merchant_TransactionDate', # 10/AN Opcional. Formato yyyy-mm-dd. Representa la fecha de la cuota sucesiva, necesaria para identificar la transacción en las devoluciones.  Obligatorio en las devoluciones de cuotas sucesivas y de cuotas sucesivas diferidas.
-]
-DATA = MANDATORY_DATA + OPTIONAL_DATA
+params = dict([
+    (name, dict(
+        name = name,
+        optionality = optionality,
+        type = type,
+        length = length,
+        ))
+    for optionality, type, length, name in _request_fields
+    ])
+    
+
+DATA = [ p['name'] for p in params.values() ]
+MANDATORY_DATA = [ p['name'] for p in params.values() if p['optionality'] == 'M']
+OPTIONAL_DATA = [ p['name'] for p in params.values()  if p['optionality'] == 'O']
 
 _notification_fields = [
     'Ds_Date', # dd/mm/yyyy Fecha de la transacción
@@ -63,7 +97,7 @@ _notification_fields = [
     'Ds_AuthorisationCode', #  6/ A-N Opcional: Código alfanumérico de autorización asignado a la aprobación de la transacción por la institución autorizadora.
     'Ds_ConsumerLanguage', #  3 / Núm Opcional: El valor 0, indicará que no se ha determinado el idioma del cliente.  (opcional). 3 se considera su longitud máxima.
     'Ds_Card_Type', #  1 / A-N Opcional: Valores posibles: C – Crédito D - Débito
-    'Ds_ErrorCode', # TODO: Look at the docs
+    'Ds_ErrorCode', # TODO: Undocumented field but actually sent (Documented as SOAP field)
     ]
 _notification_fields_upper = dict(
     (key.upper(), key)
@@ -242,16 +276,18 @@ def decodeSignedData(
     return data
 
 def encodeSignedData(merchantKey, **kwds):
-    params_json = json.dumps(kwds, sort_keys=True)
-    b64params = base64.b64encode(params_json)
-    secret = orderSecret(merchantKey, kwds['Ds_Merchant_Order'])
-    signature = signPayload(secret, b64params)
-
     for param in kwds:
         if param not in DATA:
             raise ValueError(
                 u"The received parameter %s is not allowed."
                 % param)
+        lenght = params[param]['length']
+        kwds[param] = kwds[param][:lenght]
+
+    params_json = json.dumps(kwds, sort_keys=True)
+    b64params = base64.b64encode(params_json)
+    secret = orderSecret(merchantKey, kwds['Ds_Merchant_Order'])
+    signature = signPayload(secret, b64params)
 
     return dict(
         Ds_SignatureVersion = 'HMAC_SHA256_V1',
