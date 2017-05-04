@@ -421,6 +421,22 @@ class NotificationReceiver_Test(unittest.TestCase):
             Ds_Order = '666',
             ))
 
+    def test_decodeSignedData_CardBrandParameter(self):
+        json_data = '{"DS_ORDER": "666", "Ds_Card_Brand":"1"}'
+        base64_data = base64.urlsafe_b64encode(json_data)
+        signature = signPayload(self.secret, base64_data, urlsafe=True)
+        data = decodeSignedData(
+            self.merchantkey,
+            Ds_MerchantParameters = base64_data.decode('ascii'),
+            Ds_Signature = signature.decode('ascii'),
+            Ds_SignatureVersion = self.signatureversion.decode('ascii'),
+            )
+        self.assertEqual(data, dict(
+            Ds_Order = '666',
+            Ds_Card_Brand = '1',
+            ))
+
+
     @unittest.skipIf(not config, "Requires a config.py file")
     @unittest.skipIf(config and 'redsystest' not in config.__dict__,
         "redsystest dictionary missing in config.py")
