@@ -4,6 +4,7 @@ python:
 #- "3.3" # str/unicode/bytes issues
 #- "3.4" # str/unicode/bytes issues
 #- "3.5" # str/unicode/bytes issues
+- "3.7"
 script:
 - coverage run ./setup.py test
 install:
