@@ -1,25 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Setup file for sermepa client.
+"""\
+A client to submit payment orders to the Sermepa service.
 """
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
-PACKAGES = ['sermepa', ]
+with open("README.md") as readme:
+    longdesc = readme.read()
+
 PACKAGES_DATA = {}
 
-setup(name='sermepa',
-      description = """A client to submit payment orders to the Sermepa
-      service.""",
-      author='GISCE Enginyeria',
-      author_email='devel@gisce.net',
-      url='http://www.gisce.net',
-      version='0.1.1-dev',
-      license='General Public Licence 2',
-      long_description='''Long description''',
-      provides=['sermepa'],
-      install_requires=[],
-      packages=PACKAGES,
-      package_data=PACKAGES_DATA,
-      scripts=[],
+setup(
+    name='sermepa',
+    version='0.1.2',
+    description = __doc__,
+    author='GISCE Enginyeria',
+    author_email='devel@gisce.net',
+    url='http://www.gisce.net',
+    license='General Public Licence 2 or later',
+    long_description=longdesc,
+    provides=['sermepa'],
+    test_suite='sermepa',
+    install_requires=[
+        'pyDes',
+        'simplejson',
+        ],
+    test_require=[
+        'requests',
+        ],
+    packages=find_packages(),
+    package_data=PACKAGES_DATA,
+    scripts=[],
 )
